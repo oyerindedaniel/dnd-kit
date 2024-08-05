@@ -29,16 +29,24 @@ const Draggable: React.FC<DraggableProps> = ({ children }) => {
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!dragging) return;
-    // {
-    //   x: e.clientX - (draggableRef.current?.offsetWidth ?? 0) / 2,
-    //   y: e.clientY - (draggableRef.current?.offsetHeight ?? 0) / 2,
-    // };
+
     const newPosition = {
       x: e.clientX - offset.x,
       y: e.clientY - offset.y,
     };
+
+    if (draggableRef.current) {
+      const rect = draggableRef.current.getBoundingClientRect();
+      const minX = 0;
+      const minY = 0;
+      const maxX = window.innerWidth - rect.width;
+      const maxY = window.innerHeight - rect.height;
+
+      newPosition.x = Math.max(minX, Math.min(newPosition.x, maxX));
+      newPosition.y = Math.max(minY, Math.min(newPosition.y, maxY));
+    }
+
     positionRef.current = newPosition;
-    console.log("positionREF", positionRef);
     requestAnimationFrame(() => {
       setPosition(newPosition);
     });
