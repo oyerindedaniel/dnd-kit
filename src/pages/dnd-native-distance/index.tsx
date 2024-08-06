@@ -17,8 +17,8 @@ const DndNativeDistance: React.FC = () => {
       const containerRect = containerRef.current.getBoundingClientRect();
       const draggableRect = draggableRef.current.getBoundingClientRect();
 
-      let newX = event.clientX - offset.x - containerRect.left; // 0 -> 100
-      let newY = event.clientY - offset.y - containerRect.top; // 0 -> 100
+      let newX = event.clientX - offset.x - containerRect.left;
+      let newY = event.clientY - offset.y - containerRect.top;
 
       newX = Math.max(
         0,
@@ -49,14 +49,12 @@ const DndNativeDistance: React.FC = () => {
           const elementCenterY =
             draggableRect.top + draggableRect.height / 2 - containerRect.top;
 
-          // Euclidean distance formula
           const distance = Math.sqrt(
             Math.pow(centerX - elementCenterX, 2) +
               Math.pow(centerY - elementCenterY, 2)
           );
 
           if (distance > DISTANCE) {
-            // distance 25 threshold outside this "not in the center"
             setPosition(initialPosition);
           }
         }
@@ -75,12 +73,11 @@ const DndNativeDistance: React.FC = () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDragging, initialPosition]);
+  }, [isDragging, initialPosition, offset]);
 
   const handleMouseDown = (event: React.MouseEvent) => {
     event.preventDefault();
     if (draggableRef.current && containerRef.current) {
-      // const containerRect = containerRef.current.getBoundingClientRect();
       const draggableRect = draggableRef.current.getBoundingClientRect();
 
       const offsetX = event.clientX - draggableRect.left;
@@ -98,8 +95,6 @@ const DndNativeDistance: React.FC = () => {
       setIsDragging(true);
     }
   };
-
-  console.log({ offset, initialPosition });
 
   return (
     <div
@@ -150,6 +145,7 @@ const DndNativeDistance: React.FC = () => {
           position: "absolute",
           transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
           transition: isDragging ? "none" : "transform 0.35s ease",
+          pointerEvents: "all",
         }}
       >
         <span
