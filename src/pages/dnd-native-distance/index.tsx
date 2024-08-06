@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
+// CONCEPT OF CLOSEST CENTER COLLISION ALGORITHM
 const DndNativeDistance: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -49,12 +50,14 @@ const DndNativeDistance: React.FC = () => {
           const elementCenterY =
             draggableRect.top + draggableRect.height / 2 - containerRect.top;
 
+          // Euclidean distance formula
           const distance = Math.sqrt(
             Math.pow(centerX - elementCenterX, 2) +
               Math.pow(centerY - elementCenterY, 2)
           );
 
           if (distance > DISTANCE) {
+            // if distance is outside threshold "not within the threshold"
             setPosition(initialPosition);
           }
         }

@@ -4,9 +4,8 @@ import Native from "./pages/native";
 import Layout from "./components/layout";
 import Home from "./pages/home";
 import DndNativeDistance from "./pages/dnd-native-distance";
-import DndNativeDroppable from "./pages/dnd-native";
+import DndNativeDroppable from "./pages/dnd-native-droppable";
 import DraggablePage from "./pages/draggable";
-import DndNative from "./pages/dnd-native";
 
 const router: ReturnType<typeof createBrowserRouter> = createBrowserRouter([
   {

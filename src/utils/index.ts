@@ -12,6 +12,8 @@ interface DroppableBounds {
   maxY: number;
 }
 
+// Axis-Aligned Bounding Box (AABB)
+
 export function calculateDroppableBounds(
   droppableRect: Rect,
   containerRect: Rect,

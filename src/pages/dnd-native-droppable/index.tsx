@@ -3,6 +3,7 @@ import { calculateDroppableBounds } from "../../utils";
 
 const DndNativeDroppable: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
+  const [isOver, setIsOver] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 });
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -81,9 +82,12 @@ const DndNativeDroppable: React.FC = () => {
         currentPos.y < minY ||
         currentPos.y > maxY
       ) {
-        requestAnimationFrame(() => {
+        return requestAnimationFrame(() => {
           setPosition(initialPosition);
+          setIsOver(false);
         });
+      } else {
+        setIsOver(true);
       }
     };
 
@@ -94,7 +98,7 @@ const DndNativeDroppable: React.FC = () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDragging, initialPosition.x, initialPosition.y, offset.x, offset.y]);
+  }, [initialPosition, isDragging, offset.x, offset.y]);
 
   const handleMouseDown = (event: React.MouseEvent) => {
     event.preventDefault();
@@ -154,7 +158,7 @@ const DndNativeDroppable: React.FC = () => {
             left: "50%",
             top: "50%",
             transform: "translate(-50%, -50%)",
-            backgroundColor: "yellow",
+            backgroundColor: isOver ? "red" : "yellow",
             userSelect: "none",
             position: "absolute",
           }}

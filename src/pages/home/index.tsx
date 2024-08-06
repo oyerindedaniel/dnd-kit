@@ -1,11 +1,11 @@
-import React, { useState } from "react";
 import {
   DndContext,
+  DragEndEvent,
   useDraggable,
   useDroppable,
-  DragEndEvent,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import React, { useState } from "react";
 
 interface DraggableProps {
   id: string;
@@ -58,6 +58,7 @@ const Home: React.FC = () => {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { over } = event;
+    console.log(over);
     setParent(over ? over.id : null);
   };
 
