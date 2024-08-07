@@ -138,14 +138,16 @@ const DndNativeCorners: React.FC = () => {
             mainRect
           );
 
-          console.log({ distances, closest, minDistance });
-
           const [[x, y]] = closest!;
 
           if (minDistance) {
-            setPosition({ x, y });
+            requestAnimationFrame(() => {
+              setPosition({ x, y });
+            });
           } else {
-            setPosition(initialPosition);
+            requestAnimationFrame(() => {
+              setPosition(initialPosition);
+            });
           }
         }
       }
