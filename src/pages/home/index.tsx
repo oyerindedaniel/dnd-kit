@@ -17,14 +17,12 @@ const Draggable: React.FC<DraggableProps> = ({ id, children }) => {
     id: id,
   });
 
-  console.log(CSS.Translate.toString(transform));
+  // console.log(CSS.Translate.toString(transform));
 
   const style: React.CSSProperties = {
     // Outputs translate3d(x, y, 0)
     transform: CSS.Translate.toString(transform),
   };
-
-  console.log(CSS.Translate.toString(transform));
 
   return (
     <button ref={setNodeRef} style={style} {...listeners} {...attributes}>
@@ -67,7 +65,7 @@ const Home: React.FC = () => {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { over } = event;
-    console.log(over);
+    // console.log(over);
     setParent(over ? over.id : null);
   };
 

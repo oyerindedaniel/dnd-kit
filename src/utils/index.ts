@@ -39,18 +39,38 @@ export function euclideanDistance(point1: Point, point2: Point): number {
 }
 
 // calculates the minimum distance between corners of rect and mainRect
+// function rectDistance(rect: RectPoints, mainRect: RectPoints): number {
+//   let minDistance = Infinity;
+
+//   for (const corner of rect) {
+//     for (const mainCorner of mainRect) {
+//       const distance = euclideanDistance(corner, mainCorner);
+//       if (distance < minDistance) {
+//         minDistance = distance;
+//       }
+//     }
+//   }
+//   return minDistance;
+// }
+
 function rectDistance(rect: RectPoints, mainRect: RectPoints): number {
-  let minDistance = Infinity;
+  let minAverageDistance = Infinity;
 
   for (const corner of rect) {
+    let totalDistance = 0;
+
     for (const mainCorner of mainRect) {
       const distance = euclideanDistance(corner, mainCorner);
-      if (distance < minDistance) {
-        minDistance = distance;
-      }
+      totalDistance += distance;
+    }
+
+    const averageDistance = totalDistance / mainRect.length;
+    if (averageDistance < minAverageDistance) {
+      minAverageDistance = averageDistance;
     }
   }
-  return minDistance;
+
+  return minAverageDistance;
 }
 
 // Main
@@ -76,10 +96,10 @@ export function closestRect(
 export function getCorners(rect: Rect): RectPoints {
   const { left, top, width, height } = rect;
   return [
-    [left, top],
-    [left + width, top],
-    [left, top + height],
-    [left + width, top + height],
+    [Math.floor(left), Math.floor(top)],
+    [Math.floor(left + width), Math.floor(top)],
+    [Math.floor(left), Math.floor(top + height)],
+    [Math.floor(left + width), Math.floor(top + height)],
   ];
 }
 

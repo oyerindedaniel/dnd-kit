@@ -11,7 +11,7 @@ const useDroppable = () => {
     }
   };
 
-  console.log("refs", droppableRefs);
+  // console.log("refs", droppableRefs);
 
   return { addToRefs, droppableRefs };
 };

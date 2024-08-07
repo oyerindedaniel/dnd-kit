@@ -3,7 +3,6 @@ import useDroppable from "../../hooks/use-droppable";
 import {
   calculateBoundsFromOrigin,
   closestRect,
-  getCenter,
   getCorners,
   type RectPoints,
 } from "../../utils";
@@ -97,6 +96,21 @@ const DndNativeCorners: React.FC = () => {
             right: DDPRight,
           } = DDP.current;
 
+          const { minX, minY } = calculateBoundsFromOrigin(
+            {
+              left: containerLeft,
+              top: containerTop,
+              bottom: containerBottom,
+              right: containerRight,
+            },
+            {
+              left: DDPLeft,
+              top: DDPTop,
+              bottom: DDPBottom,
+              right: DDPRight,
+            }
+          );
+
           const mainRect = getCorners({
             left: draggablePosition.x,
             top: draggablePosition.y,
@@ -107,15 +121,6 @@ const DndNativeCorners: React.FC = () => {
 
           for (const ref of droppableRefs.current) {
             const { left, top, width, height } = ref.getBoundingClientRect();
-            const { minX, minY } = calculateBoundsFromOrigin(
-              {
-                left: containerLeft,
-                top: containerTop,
-                bottom: containerBottom,
-                right: containerRight,
-              },
-              { left: DDPLeft, top: DDPTop, bottom: DDPBottom, right: DDPRight }
-            );
 
             // LEFT & TOP WITH RESPECT TO DRAGGABLE ORGIN (0, 0)
             const corners = getCorners({
@@ -133,12 +138,11 @@ const DndNativeCorners: React.FC = () => {
             mainRect
           );
 
-          console.log({ minDistance, distances, closest });
-          const [x, y] = getCenter(closest!);
+          console.log({ distances, closest, minDistance });
 
-          console.log({ x, y });
+          const [[x, y]] = closest!;
 
-          if (minDistance <= DISTANCE) {
+          if (minDistance) {
             setPosition({ x, y });
           } else {
             setPosition(initialPosition);
@@ -179,8 +183,6 @@ const DndNativeCorners: React.FC = () => {
       setIsDragging(true);
     }
   };
-
-  console.log(position);
 
   return (
     <div
