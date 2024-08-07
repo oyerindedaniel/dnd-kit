@@ -82,10 +82,10 @@ const DndNativeDroppable: React.FC = () => {
         currentPos.y < minY ||
         currentPos.y > maxY
       ) {
-        return requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
           setPosition(initialPosition);
-          setIsOver(false);
         });
+        return setIsOver(false);
       } else {
         setIsOver(true);
       }

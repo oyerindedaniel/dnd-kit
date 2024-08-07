@@ -24,6 +24,8 @@ const Draggable: React.FC<DraggableProps> = ({ id, children }) => {
     transform: CSS.Translate.toString(transform),
   };
 
+  console.log(CSS.Translate.toString(transform));
+
   return (
     <button ref={setNodeRef} style={style} {...listeners} {...attributes}>
       {children}
@@ -43,6 +45,13 @@ const Droppable: React.FC<DroppableProps> = ({ id, children }) => {
 
   const style: React.CSSProperties = {
     opacity: isOver ? 1 : 0.5,
+    width: "300px",
+    height: "300px",
+    backgroundColor: "white",
+    color: "black",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
   };
 
   return (

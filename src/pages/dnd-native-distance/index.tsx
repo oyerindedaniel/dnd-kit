@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { euclideanDistance } from "../../utils";
 
 // CONCEPT OF CLOSEST CENTER COLLISION ALGORITHM
 const DndNativeDistance: React.FC = () => {
@@ -51,9 +52,9 @@ const DndNativeDistance: React.FC = () => {
             draggableRect.top + draggableRect.height / 2 - containerRect.top;
 
           // Euclidean distance formula
-          const distance = Math.sqrt(
-            Math.pow(centerX - elementCenterX, 2) +
-              Math.pow(centerY - elementCenterY, 2)
+          const distance = euclideanDistance(
+            [centerX, centerY],
+            [elementCenterX, elementCenterY]
           );
 
           if (distance > DISTANCE) {

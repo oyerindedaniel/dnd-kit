@@ -6,6 +6,7 @@ import Home from "./pages/home";
 import DndNativeDistance from "./pages/dnd-native-distance";
 import DndNativeDroppable from "./pages/dnd-native-droppable";
 import DraggablePage from "./pages/draggable";
+import DndNativeCorners from "./pages/dnd-native-closest-corners";
 
 const router: ReturnType<typeof createBrowserRouter> = createBrowserRouter([
   {
@@ -28,6 +29,10 @@ const router: ReturnType<typeof createBrowserRouter> = createBrowserRouter([
       {
         path: "dnd-native-droppable",
         element: <DndNativeDroppable />,
+      },
+      {
+        path: "dnd-native-corners",
+        element: <DndNativeCorners />,
       },
       {
         path: "native",
