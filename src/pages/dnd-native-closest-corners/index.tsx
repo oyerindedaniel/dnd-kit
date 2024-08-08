@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import useDroppable from "../../hooks/use-droppable";
 import {
   calculateBoundsFromOrigin,
@@ -8,13 +9,21 @@ import {
 } from "../../utils";
 
 // CONCEPT OF CLOSEST CORNERS COLLISION ALGORITHM
+
 const DndNativeCorners: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
+  const [isDropped, setIsDropped] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 });
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const draggableRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const windowDimensionsRef = useRef<{ height: number; width: number }>({
+    height: window.innerHeight,
+    width: window.innerWidth,
+  });
+
+  const [closestDroppable, setClosestDroppable] = useState<string | null>(null);
 
   const positionRef = useRef({ x: 0, y: 0 });
 
@@ -31,10 +40,11 @@ const DndNativeCorners: React.FC = () => {
       const containerRect = containerRef.current.getBoundingClientRect();
       const draggableRect = draggableRef.current.getBoundingClientRect();
 
-      // calculates and keep item at original position
+      // calculates and keeps item at original position
 
       // DDP -> defaultDraggablePosition
       if (!DDP.current) {
+        // console.log("in here ddp current");
         DDP.current = {
           left: draggableRect.left,
           top: draggableRect.top,
@@ -63,14 +73,10 @@ const DndNativeCorners: React.FC = () => {
       };
 
       requestAnimationFrame(() => {
-        setPosition({
-          x: newX,
-          y: newY,
-        });
+        setPosition(positionRef.current);
       });
     };
 
-    // FOR NOW
     const handleMouseUp = () => {
       if (isDragging) {
         setIsDragging(false);
@@ -87,8 +93,14 @@ const DndNativeCorners: React.FC = () => {
             bottom: containerBottom,
             right: containerRight,
           } = containerRef.current.getBoundingClientRect();
-          const { width: draggableWidth, height: draggableHeight } =
-            draggableRef.current.getBoundingClientRect();
+          const {
+            width: draggableWidth,
+            height: draggableHeight,
+            left,
+            right,
+            top,
+            bottom,
+          } = draggableRef.current.getBoundingClientRect();
           const {
             left: DDPLeft,
             top: DDPTop,
@@ -117,12 +129,15 @@ const DndNativeCorners: React.FC = () => {
             width: draggableWidth,
             height: draggableHeight,
           });
-          const rects: RectPoints[] = [];
 
-          for (const ref of droppableRefs.current) {
-            const { left, top, width, height } = ref.getBoundingClientRect();
+          const rects: { id: string; corners: RectPoints }[] = [];
 
-            // LEFT & TOP WITH RESPECT TO DRAGGABLE ORGIN (0, 0)
+          for (const element of droppableRefs.current) {
+            const { left, top, width, height } =
+              element.getBoundingClientRect();
+            const { id } = element;
+
+            // LEFT & TOP WITH RESPECT TO DRAGGABLE ORIGIN (0, 0)
             const corners = getCorners({
               left: minX + (left - containerLeft),
               top: minY + (top - containerTop),
@@ -130,13 +145,17 @@ const DndNativeCorners: React.FC = () => {
               height,
             });
 
-            rects.push(corners);
+            rects.push({ id, corners });
           }
 
-          const { distances, closest, minDistance } = closestRect(
-            rects,
+          const { closest, distances, minDistance } = closestRect(
+            rects.map((r) => r.corners),
             mainRect
           );
+
+          const closestDroppable = rects.find((r) => r.corners === closest);
+
+          setClosestDroppable(closestDroppable?.id || null);
 
           const [[x, y]] = closest!;
 
@@ -149,42 +168,122 @@ const DndNativeCorners: React.FC = () => {
               setPosition(initialPosition);
             });
           }
+
+          setIsDropped(true);
         }
       }
     };
 
-    if (isDragging) {
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-    } else {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-    }
+    const handleResize = () => {
+      // const { height: prevWindowHeight, width: prevWindoeWidth } =
+      //   windowDimensionsRef.current;
+
+      // const { height: newWndowHeight, width: newWindowWidth } = {
+      //   height: window.innerHeight,
+      //   width: window.innerWidth,
+      // };
+
+      // windowDimensionsRef.current = ;
+
+      if (!draggableRef.current) return;
+
+      const draggableRect = draggableRef.current.getBoundingClientRect();
+      // Reset the draggable's position and DDP on resize
+      DDP.current = {
+        left: draggableRect.left,
+        top: draggableRect.top,
+        width: draggableRect.width,
+        height: draggableRect.height,
+        right: draggableRect.right,
+        bottom: draggableRect.bottom,
+      };
+
+      // let newX = event.clientX - offset.x - DDP.current.left;
+      // let newY = event.clientY - offset.y - DDP.current.top;
+
+      // Recalculates the initial positions
+
+      positionRef.current = {
+        x: draggableRect.left,
+        y: draggableRect.top,
+      };
+      setPosition(positionRef.current);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("resize", handleResize);
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("resize", handleResize);
     };
-  }, [isDragging, initialPosition, offset, droppableRefs]);
+  }, [
+    isDragging,
+    initialPosition,
+    offset,
+    droppableRefs,
+    isDropped,
+    closestDroppable,
+    position.x,
+    position.y,
+  ]);
 
   const handleMouseDown = (event: React.MouseEvent) => {
     event.preventDefault();
-    if (draggableRef.current) {
-      const draggableRect = draggableRef.current.getBoundingClientRect();
+    flushSync(() => {
+      setClosestDroppable(null);
+    });
+    // setClosestDroppable(null);
+    if (!draggableRef.current || !containerRef.current) return;
+    const draggableRect = draggableRef.current.getBoundingClientRect();
 
-      const offsetX = event.clientX - draggableRect.left;
-      const offsetY = event.clientY - draggableRect.top;
+    const offsetX =
+      event.clientX -
+      (isDropped ? draggableRect.left + position.x : draggableRect.left);
+    const offsetY =
+      event.clientY -
+      (isDropped ? draggableRect.top + position.y : draggableRect.top);
 
-      setInitialPosition({ x: 0, y: 0 });
+    setInitialPosition({ x: 0, y: 0 });
 
-      setOffset({
-        x: offsetX,
-        y: offsetY,
-      });
+    setOffset({
+      x: offsetX,
+      y: offsetY,
+    });
 
-      setIsDragging(true);
-    }
+    setIsDropped(false);
+    setIsDragging(true);
   };
+
+  const draggable = (
+    <div
+      ref={draggableRef}
+      onMouseDown={handleMouseDown}
+      style={{
+        width: "80%",
+        height: "80px",
+        backgroundColor: "white",
+        display: "flex",
+        justifyContent: "center",
+        color: "black",
+        alignItems: "center",
+        zIndex: 20,
+        cursor: "move",
+        userSelect: "none",
+        borderRadius: "4px",
+        pointerEvents: "all",
+        // position: "absolute",
+        transform: isDragging
+          ? `translate3d(${position.x}px, ${position.y}px, 0)`
+          : "none",
+        transition: isDragging ? "none" : "transform 0.35s ease",
+      }}
+    >
+      <p style={{ textAlign: "center" }}>draggable</p>
+    </div>
+  );
 
   return (
     <div
@@ -199,6 +298,7 @@ const DndNativeCorners: React.FC = () => {
       }}
     >
       <div
+        // ref={addToRefs}
         style={{
           display: "flex",
           flexDirection: "column",
@@ -212,6 +312,7 @@ const DndNativeCorners: React.FC = () => {
         }}
       >
         <div
+          id="A1"
           ref={addToRefs}
           style={{
             width: "80%",
@@ -219,13 +320,24 @@ const DndNativeCorners: React.FC = () => {
             backgroundColor: "#666",
             display: "flex",
             justifyContent: "center",
+            position: "relative",
             alignItems: "center",
             borderRadius: "4px",
           }}
         >
-          <p style={{ textAlign: "center" }}>useDroppable({"{id: 'A1'}"})</p>
+          <p
+            style={{
+              fontSize: "12px",
+              textAlign: "center",
+              position: "absolute",
+            }}
+          >
+            useDroppable({"{id: 'A1'}"})
+          </p>
+          {closestDroppable === "A1" && draggable}
         </div>
         <div
+          id="A2"
           ref={addToRefs}
           style={{
             width: "80%",
@@ -237,9 +349,19 @@ const DndNativeCorners: React.FC = () => {
             borderRadius: "4px",
           }}
         >
-          <p style={{ textAlign: "center" }}>useDroppable({"{id: 'A2'}"})</p>
+          <p
+            style={{
+              fontSize: "12px",
+              textAlign: "center",
+              position: "absolute",
+            }}
+          >
+            useDroppable({"{id: 'A2'}"})
+          </p>
+          {closestDroppable === "A2" && draggable}
         </div>
         <div
+          id="A3"
           ref={addToRefs}
           style={{
             width: "80%",
@@ -251,7 +373,16 @@ const DndNativeCorners: React.FC = () => {
             borderRadius: "4px",
           }}
         >
-          <p style={{ textAlign: "center" }}>useDroppable({"{id: 'A3'}"})</p>
+          <p
+            style={{
+              fontSize: "12px",
+              textAlign: "center",
+              position: "absolute",
+            }}
+          >
+            useDroppable({"{id: 'A3'}"})
+          </p>
+          {closestDroppable === "A3" && draggable}
         </div>
       </div>
 
@@ -267,28 +398,7 @@ const DndNativeCorners: React.FC = () => {
           position: "relative",
         }}
       >
-        <div
-          ref={draggableRef}
-          onMouseDown={handleMouseDown}
-          style={{
-            width: "80%",
-            height: "80px",
-            backgroundColor: "white",
-            display: "flex",
-            justifyContent: "center",
-            color: "black",
-            alignItems: "center",
-            cursor: "move",
-            userSelect: "none",
-            borderRadius: "4px",
-            pointerEvents: "all",
-            // position: "absolute",
-            transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
-            transition: isDragging ? "none" : "transform 0.35s ease",
-          }}
-        >
-          <p style={{ textAlign: "center" }}>draggable</p>
-        </div>
+        {!closestDroppable && draggable}
       </div>
 
       {/* <div
