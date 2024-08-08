@@ -96,10 +96,10 @@ export function closestRect(
 export function getCorners(rect: Rect): RectPoints {
   const { left, top, width, height } = rect;
   return [
-    [Math.floor(left), Math.floor(top)],
-    [Math.floor(left + width), Math.floor(top)],
-    [Math.floor(left), Math.floor(top + height)],
-    [Math.floor(left + width), Math.floor(top + height)],
+    [Math.round(left), Math.round(top)],
+    [Math.round(left + width), Math.round(top)],
+    [Math.round(left), Math.round(top + height)],
+    [Math.round(left + width), Math.round(top + height)],
   ];
 }
 
