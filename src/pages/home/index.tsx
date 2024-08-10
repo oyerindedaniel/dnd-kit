@@ -17,7 +17,7 @@ const Draggable: React.FC<DraggableProps> = ({ id, children }) => {
     id: id,
   });
 
-  // console.log(CSS.Translate.toString(transform));
+  console.log(CSS.Translate.toString(transform));
 
   const style: React.CSSProperties = {
     // Outputs translate3d(x, y, 0)

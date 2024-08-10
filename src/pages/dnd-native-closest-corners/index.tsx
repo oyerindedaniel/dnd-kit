@@ -257,6 +257,8 @@ const DndNativeCorners: React.FC = () => {
     setIsDragging(true);
   };
 
+  console.log({ position });
+
   const draggable = (
     <div
       ref={draggableRef}
