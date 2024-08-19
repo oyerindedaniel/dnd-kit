@@ -273,7 +273,153 @@
 
 // export default TimerComponent;
 
-import React, { useCallback, useRef } from "react";
+// import React, { useCallback, useRef } from "react";
+
+// interface DropAnimationConfig {
+//   keyframes: () => Keyframe[];
+//   duration?: number;
+//   easing?: string;
+// }
+
+// function useDropAnimation(config: DropAnimationConfig) {
+//   return useCallback(
+//     (node: HTMLElement | null) => {
+//       if (!config || !node) return;
+
+//       const animation = node.animate(config.keyframes(), {
+//         duration: config.duration || 250,
+//         easing: config.easing || "ease",
+//         fill: "forwards",
+//       });
+
+//       return new Promise<string>((resolve) => {
+//         animation.onfinish = () => {
+//           resolve("animation completed");
+//         };
+//       });
+//     },
+//     [config]
+//   );
+// }
+
+// const DropAnimationDemo: React.FC = () => {
+//   const draggableRef = useRef<HTMLDivElement>(null);
+//   const droppableRef = useRef<HTMLDivElement>(null);
+
+//   const animateDrop = useDropAnimation({
+//     keyframes: () => [
+//       { transform: "translateX(0px)" },
+//       { transform: "translateX(200px)" },
+//     ],
+//     duration: 500,
+//     easing: "ease-out",
+//   });
+
+//   const handleDrag = async () => {
+//     if (draggableRef.current) {
+//       const isCompleted = await animateDrop(draggableRef.current);
+//       console.log(isCompleted);
+//     }
+//   };
+
+//   return (
+//     <div style={{ position: "relative", height: "200px" }}>
+//       <div
+//         ref={draggableRef}
+//         style={{
+//           width: "100px",
+//           height: "100px",
+//           backgroundColor: "red",
+//           position: "absolute",
+//           transition: "transform 0.5s ease-out",
+//         }}
+//       >
+//         Draggable
+//       </div>
+//       <div
+//         ref={droppableRef}
+//         style={{
+//           width: "100px",
+//           height: "100px",
+//           backgroundColor: "blue",
+//           position: "absolute",
+//           left: "300px",
+//         }}
+//       >
+//         Droppable
+//       </div>
+//       <button onClick={handleDrag} style={{ marginTop: "150px" }}>
+//         Trigger Animation
+//       </button>
+//     </div>
+//   );
+// };
+
+// export default DropAnimationDemo;
+
+import React, {
+  cloneElement,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
+export type Animation = (
+  id: string,
+  element: HTMLElement
+) => Promise<void> | void;
+
+export interface Props {
+  animation: Animation;
+  children: React.ReactElement | null;
+}
+
+export function AnimationManager({ animation, children }: Props) {
+  const [clonedChildren, setClonedChildren] =
+    useState<React.ReactElement | null>(null);
+  const [element, setElement] = useState<HTMLElement | null>(null);
+  const previousChildren = usePrevious(children);
+
+  useEffect(() => {
+    if (!children && !clonedChildren && previousChildren) {
+      setClonedChildren(previousChildren);
+    }
+  }, [children, clonedChildren, previousChildren]);
+
+  useEffect(() => {
+    if (!element) return;
+
+    const key = clonedChildren?.key;
+    const id = clonedChildren?.props.id;
+
+    if (id == null) {
+      setClonedChildren(null);
+      return;
+    }
+
+    Promise.resolve(animation(id, element)).then(() => {
+      setClonedChildren(null);
+    });
+  }, [animation, clonedChildren, element]);
+
+  return (
+    <>
+      {children}
+      {clonedChildren
+        ? cloneElement(clonedChildren, { ref: setElement })
+        : null}
+    </>
+  );
+}
+
+function usePrevious<T>(value: T): T | undefined {
+  const ref = useRef<T>();
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
 
 interface DropAnimationConfig {
   keyframes: () => Keyframe[];
@@ -281,78 +427,55 @@ interface DropAnimationConfig {
   easing?: string;
 }
 
-function useDropAnimation(config: DropAnimationConfig) {
-  return useCallback(
-    (node: HTMLElement | null) => {
-      if (!config || !node) return;
+const AnimationDemo = () => {
+  const [show, setShow] = useState(true);
 
-      const animation = node.animate(config.keyframes(), {
-        duration: config.duration || 250,
-        easing: config.easing || "ease",
-        fill: "forwards",
-      });
+  const handleRemove = () => {
+    setShow(false);
+  };
 
-      return new Promise<string>((resolve) => {
-        animation.onfinish = () => {
-          resolve("animation completed");
-        };
-      });
-    },
-    [config]
-  );
-}
+  function useAnimation(config: DropAnimationConfig) {
+    return useCallback(
+      (id: string, node: HTMLElement | null) => {
+        if (!config || !node) return;
 
-const DropAnimationDemo: React.FC = () => {
-  const draggableRef = useRef<HTMLDivElement>(null);
-  const droppableRef = useRef<HTMLDivElement>(null);
+        const animation = node.animate(config.keyframes(), {
+          duration: config.duration || 250,
+          easing: config.easing || "ease",
+          fill: "forwards",
+        });
 
-  const animateDrop = useDropAnimation({
+        return new Promise<void>((resolve) => {
+          animation.onfinish = () => {
+            resolve();
+          };
+        });
+      },
+      [config]
+    );
+  }
+
+  const animation = useAnimation({
     keyframes: () => [
-      { transform: "translateX(0px)" },
-      { transform: "translateX(200px)" },
+      { opacity: 1, transform: "translateX(0)" },
+      { opacity: 0, transform: "translateX(100px)" },
     ],
     duration: 500,
     easing: "ease-out",
   });
 
-  const handleDrag = async () => {
-    if (draggableRef.current) {
-      const isCompleted = await animateDrop(draggableRef.current);
-      console.log(isCompleted);
-    }
-  };
+  // const animation: Animation = (id, element) => {
+  //   return animateDrop(element);
+  // };
 
   return (
-    <div style={{ position: "relative", height: "200px" }}>
-      <div
-        ref={draggableRef}
-        style={{
-          width: "100px",
-          height: "100px",
-          backgroundColor: "red",
-          position: "absolute",
-          transition: "transform 0.5s ease-out",
-        }}
-      >
-        Draggable
-      </div>
-      <div
-        ref={droppableRef}
-        style={{
-          width: "100px",
-          height: "100px",
-          backgroundColor: "blue",
-          position: "absolute",
-          left: "300px",
-        }}
-      >
-        Droppable
-      </div>
-      <button onClick={handleDrag} style={{ marginTop: "150px" }}>
-        Trigger Animation
-      </button>
+    <div>
+      <button onClick={handleRemove}>Remove Element</button>
+      <AnimationManager animation={animation}>
+        {show ? <div id="my-element">This will fade out</div> : null}
+      </AnimationManager>
     </div>
   );
 };
 
-export default DropAnimationDemo;
+export default AnimationDemo;
